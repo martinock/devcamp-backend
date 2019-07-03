@@ -1,21 +1,27 @@
+# https://docs.docker.com/compose/compose-file/#compose-and-docker-compatibility-matrix
 version: '3'
+
+# https://docs.docker.com/compose/compose-file/#service-configuration-reference
 services:
-  db:
-    image: postgres
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+
+  # Postgres image
+  # Configuration:
+  #   - Bind the data storage location to our own directory
+  postgres:
+    image: "postgres:latest"
     ports:
       - 5432:5432
-  hello:
-    build: .
-    command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "hello.go"]
-    volumes:
-      - .:/go/src/hello
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    links:
-      - db
+    volumes: 
+      - ./docker-volumes/var/lib/postgresql/data:/var/lib/postgresql/data
+
+  # hello:
+  #   build: .
+  #   command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "hello.go"]
+  #   volumes:
+  #     - .:/go/src/hello
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - db
+  #   links:
+  #     - db
