@@ -1,13 +1,25 @@
 FROM golang:1.12
-
 LABEL maintainer="Nino <martino.aksel.11@gmail.com>"
 
-WORKDIR $GOPATH/src/hello
+# Starting directory on docker machine
+WORKDIR $GOPATH/src/github.com/martinock/hello-go
 
-COPY . .
+# Copy the necessary files from this project onto the docker machine
+COPY cmd/app .
 
-RUN go get -v 
+# Echo the current directory (`pwd`) and lists its content (`ls`)
+RUN \
+    echo "\nThis is the current directory:" && \
+    pwd && \
+    echo "\nThese are files within this directory:" && \
+    ls -a && \
+    echo ""
 
+# Build process
+RUN go build
+
+# Port to be used
 EXPOSE 3000
 
-CMD ["hello"]
+# Entry point for this Dockerfile
+CMD ["./hello-go"]
