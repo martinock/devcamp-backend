@@ -35,22 +35,25 @@ func initRouter(router *httprouter.Router, handler *handler) {
 	router.GET("/", handler.index)
 
 	// Single user API
-	router.GET("/user/:userID", handler.userGET)
-	router.POST("/user", handler.userPOST)
-	router.PUT("/user/:userID", handler.userPUT)
-	router.DELETE("/user/:userID", handler.userDELETE)
+	router.GET("/user/:userID", handler.GetUserByID)
+	router.POST("/user", handler.InsertUser)
+	router.PUT("/user/:userID", handler.EditUserByID)
+	router.DELETE("/user/:userID", handler.DeleteUserByID)
 
 	// Batch user API
-	router.GET("/users", handler.usersGET)
+	router.GET("/users", handler.GetMultipleUsers)
 
 	// Single book API
-	router.GET("/book/:bookID", handler.bookGET)
-	router.POST("/book", handler.bookPOST)
-	router.PUT("/book/:bookID", handler.bookPUT)
-	router.DELETE("/book/:bookID", handler.bookDELETE)
+	router.GET("/book/:bookID", handler.GetBookByID)
+	router.POST("/book", handler.InsertBook)
+	router.PUT("/book/:bookID", handler.EditBook)
+	router.DELETE("/book/:bookID", handler.DeleteBookByID)
 
 	// Batch book API
-	router.GET("/books", handler.booksGET)
+	router.POST("/books", handler.InsertMultipleBooks)
+
+	// Lending API
+	router.POST("/lend/:bookID", handler.LendBook)
 
 	router.NotFound = handler.notFoundHandler
 }
