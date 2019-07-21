@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -18,13 +19,13 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request, param http
 		return
 	}
 
-	var users []user
+	var users []User
 
 	for rows.Next() {
-		user := user{}
+		user := User{}
 		err := rows.Scan(
-			&user.id,
-			&user.name,
+			&user.ID,
+			&user.Name,
 		)
 		if err != nil {
 			log.Println(err)
@@ -44,7 +45,38 @@ func (h *handler) GetUserByID(w http.ResponseWriter, r *http.Request, param http
 
 // InsertUser a function to insert user data (id, name) to DB
 func (h *handler) InsertUser(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	// read json body
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		renderJSON(w, []byte(`
+			message: "Failed to read body"
+		`), http.StatusBadRequest)
+		return
+	}
 
+	// parse json body
+	var user User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// executing insert query
+	query := "INSERT INTO users (id, name) VALUES ($1, $2)"
+	_, err = h.db.Exec(query, user.ID, user.Name)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	renderJSON(w, []byte(`
+	{
+		status: "success",
+		message: "Insert user success!"
+	}
+`), http.StatusOK)
 }
 
 // EditUserByID a function to change user data (name) in DB with given params (id, name)
