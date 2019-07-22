@@ -1,5 +1,6 @@
 # app binary
-hello-go
+devcamp-backend
+app
 
 # dependencies
 vendor/
