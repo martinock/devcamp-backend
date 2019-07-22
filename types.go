@@ -30,3 +30,8 @@ type Book struct {
 	ISBN   string `json:"isbn"`
 	Stock  int64  `json:"stock"`
 }
+
+// LendRequest struct for receiving lend http request
+type LendRequest struct {
+	UserID int `json:"user_id"`
+}

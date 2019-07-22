@@ -106,7 +106,7 @@ func (h *handler) EditBook(w http.ResponseWriter, r *http.Request, param httprou
 		return
 	}
 
-	query := "UPDATE books SET title = %s, author = $s, isbn = %s, stock = %d WHERE id = %s"
+	query := "UPDATE books SET title = '%s', author = '%s', isbn = '%s', stock = %d WHERE id = %s"
 	_, err = h.db.Exec(fmt.Sprintf(query, book.Title, book.Author, book.ISBN, book.Stock, bookID))
 	if err != nil {
 		log.Println(err)
@@ -168,5 +168,63 @@ func (h *handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 
 // LendBook a function to record book lending in DB and update book stock in book tables
 func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	bookID := param.ByName("bookID")
+	bookStockQuery := "SELECT stock FROM books WHERE id = %s"
 
+	// Read userID
+	body, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		renderJSON(w, []byte(`
+			message: "Failed to read body"
+		`), http.StatusBadRequest)
+		return
+	}
+
+	// parse json body
+	var request LendRequest
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Get book stock from DB
+	rows, err := h.db.Query(fmt.Sprintf(bookStockQuery, bookID))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	var bookStock int
+	for rows.Next() {
+		err := rows.Scan(&bookStock)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+	}
+
+	// Insert Book to Lend tables
+	insertBookLendingQuery := "INSERT INTO lend (user_id, book_id) VALUES ($1, $2)"
+	_, err = h.db.Exec(insertBookLendingQuery, request.UserID, bookID)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Update Book stock query
+	updateStockQuery := "UPDATE books SET stock = $1 WHERE id = $2"
+	_, err = h.db.Exec(updateStockQuery, (bookStock - 1), bookID)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	renderJSON(w, []byte(`
+	{
+		status: "success",
+		message: "Your order has been recorded!"
+	}
+	`), http.StatusOK)
 }
