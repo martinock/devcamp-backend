@@ -21,3 +21,12 @@ type User struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+// Book struct for database query
+type Book struct {
+	ID     int    `json:"id"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	ISBN   string `json:"isbn"`
+	Stock  int64  `json:"stock"`
+}
