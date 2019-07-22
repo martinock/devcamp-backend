@@ -1,2 +1,8 @@
 # app binary
-cmd/app/app
+hello-go
+
+# dependencies
+vendor/
+
+# auto-generated stuff
+.vscode/
