@@ -16,8 +16,8 @@ type handler struct {
 }
 type notFoundHandler struct{}
 
-// user struct for database query
-type user struct {
-	id   int
-	name string
+// User struct for database query
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
