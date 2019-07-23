@@ -144,6 +144,8 @@ func (h *Handler) DeleteBookByID(w http.ResponseWriter, r *http.Request, param h
 func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	var buffer bytes.Buffer
 
+	query := "INSERT INTO books (id, title, author, isbn, stock) VALUES ($1, $2, $3, $4, $5)"
+
 	file, header, err := r.FormFile("books")
 	if err != nil {
 		log.Println(err)
@@ -153,6 +155,10 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 
 	// get file name
 	name := strings.Split(header.Filename, ".")
+	if name[1] != "csv" {
+		log.Println("File format not supported")
+		return
+	}
 	log.Printf("Received a file with name = %s\n", name[0])
 
 	// copy file to buffer
@@ -160,10 +166,31 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 
 	contents := buffer.String()
 
-	// TODO: Do something with the file's contents, instead of just print it
-	fmt.Println(contents)
+	// Split contents to rows
+	rows := strings.Split(contents, "\n")
+	for i, row := range rows {
+		// skip title
+		if i == 0 {
+			continue
+		}
+		// Split rows to column
+		columns := strings.Split(row, ",")
+
+		_, err = h.DB.Exec(query, columns[0], columns[1], columns[2], columns[3], columns[4])
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	}
 
 	buffer.Reset()
+
+	renderJSON(w, []byte(`
+	{
+		status: "success",
+		message: "Update book success!"
+	}
+	`), http.StatusOK)
 }
 
 // LendBook a function to record book lending in DB and update book stock in book tables
