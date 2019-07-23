@@ -1,8 +1,8 @@
 FROM golang:1.12
-LABEL maintainer="Nino <martino.aksel.11@gmail.com>"
+LABEL maintainer="Nino <martino.khuangga@tokopedia.com>"
 
 # Starting directory on docker machine
-WORKDIR $GOPATH/src/github.com/martinock/hello-go
+WORKDIR $GOPATH/src/github.com/martinock/devcamp-backend
 
 # Copy the necessary files from this project onto the docker machine
 COPY cmd/app .
@@ -22,4 +22,4 @@ RUN go build
 EXPOSE 3000
 
 # Entry point for this Dockerfile
-CMD ["./hello-go"]
+CMD ["./devcamp-backend"]
