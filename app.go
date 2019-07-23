@@ -8,31 +8,31 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	_ "github.com/lib/pq"
+
+	"github.com/martinock/devcamp-backend/internal"
 )
 
-func initFlags(args *args) {
+func initFlags(args *internal.Args) {
 	port := flag.Int("port", 3000, "port number for your apps")
-	args.port = *port
+	args.Port = *port
 }
 
-func initHandler(handler *handler) error {
+func initHandler(handler *internal.Handler) error {
 
 	// Initialize SQL DB
 	db, err := sql.Open("postgres", "postgres://postgres:postgres@localhost:5432/?sslmode=disable")
 	if err != nil {
 		return err
 	}
-	handler.db = db
-
-	// Handler for 404 pages
-	handler.notFoundHandler = &notFoundHandler{}
+	handler.DB = db
 
 	return nil
 }
 
-func initRouter(router *httprouter.Router, handler *handler) {
+func initRouter(router *httprouter.Router, handler *internal.Handler) {
 
-	router.GET("/", handler.index)
+	router.GET("/", handler.Index)
 
 	// Single user API
 	router.GET("/user/:userID", handler.GetUserByID)
@@ -50,19 +50,21 @@ func initRouter(router *httprouter.Router, handler *handler) {
 	router.DELETE("/book/:bookID", handler.DeleteBookByID)
 
 	// Batch book API
+	router.GET("/books", handler.GetMultipleBooks)
 	router.POST("/books", handler.InsertMultipleBooks)
 
 	// Lending API
 	router.POST("/lend/:bookID", handler.LendBook)
 
-	router.NotFound = handler.notFoundHandler
+	// `httprouter` library uses `ServeHTTP` method for it's 404 pages
+	router.NotFound = handler
 }
 
 func main() {
-	args := new(args)
+	args := new(internal.Args)
 	initFlags(args)
 
-	handler := new(handler)
+	handler := new(internal.Handler)
 	if err := initHandler(handler); err != nil {
 		panic(err)
 	}
@@ -70,6 +72,6 @@ func main() {
 	router := httprouter.New()
 	initRouter(router, handler)
 
-	fmt.Printf("Apps served on :%d\n", args.port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", args.port), router))
+	fmt.Printf("Apps served on :%d\n", args.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", args.Port), router))
 }
