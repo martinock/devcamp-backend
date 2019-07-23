@@ -179,7 +179,7 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 		_, err = h.DB.Exec(query, columns[0], columns[1], columns[2], columns[3], columns[4])
 		if err != nil {
 			log.Println(err)
-			return
+			continue
 		}
 	}
 
@@ -188,7 +188,7 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 	renderJSON(w, []byte(`
 	{
 		status: "success",
-		message: "Update book success!"
+		message: "Insert book success!"
 	}
 	`), http.StatusOK)
 }
