@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"net/http"
@@ -6,7 +6,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (h *handler) index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+// Index is the home page handler
+func (h *Handler) Index(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	renderJSON(w, []byte(`
 		{
 			"module": "search",
@@ -16,7 +17,8 @@ func (h *handler) index(w http.ResponseWriter, req *http.Request, _ httprouter.P
 	`), http.StatusOK)
 }
 
-func (h *notFoundHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+// ServeHTTP is used for 404 page
+func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	renderJSON(w, []byte(`
 		{
 			"message": "There's nothing here"

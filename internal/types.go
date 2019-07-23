@@ -1,20 +1,22 @@
-package main
+package internal
 
 import (
 	"database/sql"
 )
 
-// args used for this application
-type args struct {
-	port int
+// Args used for this application
+type Args struct {
+
+	// Port used by this service
+	Port int
 }
 
-// handler object used to handle the HTTP API
-type handler struct {
-	db              *sql.DB
-	notFoundHandler *notFoundHandler
+// Handler object used to handle the HTTP API
+type Handler struct {
+
+	// DB object that'll be used
+	DB *sql.DB
 }
-type notFoundHandler struct{}
 
 // User struct for database query
 type User struct {

@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"bytes"
@@ -14,9 +14,9 @@ import (
 )
 
 // GetBookByID a function to get a single book given it's ID
-func (h *handler) GetBookByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) GetBookByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	query := "SELECT id, title, author, isbn, stock FROM books WHERE id = " + param.ByName("bookID")
-	rows, err := h.db.Query(query)
+	rows, err := h.DB.Query(query)
 	if err != nil {
 		log.Println(err)
 		return
@@ -50,7 +50,7 @@ func (h *handler) GetBookByID(w http.ResponseWriter, r *http.Request, param http
 }
 
 // InsertBook a function to insert book to DB
-func (h *handler) InsertBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) InsertBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	// read json body
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -71,7 +71,7 @@ func (h *handler) InsertBook(w http.ResponseWriter, r *http.Request, param httpr
 
 	// executing insert query
 	query := "INSERT INTO books (id, title, author, isbn, stock) VALUES ($1, $2, $3, $4, $5)"
-	_, err = h.db.Exec(query, book.ID, book.Title, book.Author, book.ISBN, book.Stock)
+	_, err = h.DB.Exec(query, book.ID, book.Title, book.Author, book.ISBN, book.Stock)
 	if err != nil {
 		log.Println(err)
 		return
@@ -86,7 +86,7 @@ func (h *handler) InsertBook(w http.ResponseWriter, r *http.Request, param httpr
 }
 
 // EditBook a function to change book data in DB, with given params
-func (h *handler) EditBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) EditBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	bookID := param.ByName("bookID")
 	// read json body
 	body, err := ioutil.ReadAll(r.Body)
@@ -107,7 +107,7 @@ func (h *handler) EditBook(w http.ResponseWriter, r *http.Request, param httprou
 	}
 
 	query := "UPDATE books SET title = '%s', author = '%s', isbn = '%s', stock = %d WHERE id = %s"
-	_, err = h.db.Exec(fmt.Sprintf(query, book.Title, book.Author, book.ISBN, book.Stock, bookID))
+	_, err = h.DB.Exec(fmt.Sprintf(query, book.Title, book.Author, book.ISBN, book.Stock, bookID))
 	if err != nil {
 		log.Println(err)
 		return
@@ -122,11 +122,11 @@ func (h *handler) EditBook(w http.ResponseWriter, r *http.Request, param httprou
 }
 
 // DeleteBookByID a function to remove book data from DB, given bookID
-func (h *handler) DeleteBookByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) DeleteBookByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	bookID := param.ByName("bookID")
 
 	query := "DELETE FROM books WHERE id = %s"
-	_, err := h.db.Exec(fmt.Sprintf(query, bookID))
+	_, err := h.DB.Exec(fmt.Sprintf(query, bookID))
 	if err != nil {
 		log.Println(err)
 		return
@@ -141,7 +141,7 @@ func (h *handler) DeleteBookByID(w http.ResponseWriter, r *http.Request, param h
 }
 
 // InsertMultipleBooks a function to insert multiple book data, given file of books data
-func (h *handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	var buffer bytes.Buffer
 
 	file, header, err := r.FormFile("books")
@@ -167,7 +167,7 @@ func (h *handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 }
 
 // LendBook a function to record book lending in DB and update book stock in book tables
-func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	bookID := param.ByName("bookID")
 	bookStockQuery := "SELECT stock FROM books WHERE id = %s"
 
@@ -190,7 +190,7 @@ func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 	}
 
 	// Get book stock from DB
-	rows, err := h.db.Query(fmt.Sprintf(bookStockQuery, bookID))
+	rows, err := h.DB.Query(fmt.Sprintf(bookStockQuery, bookID))
 	if err != nil {
 		log.Println(err)
 		return
@@ -207,7 +207,7 @@ func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 
 	// Insert Book to Lend tables
 	insertBookLendingQuery := "INSERT INTO lend (user_id, book_id) VALUES ($1, $2)"
-	_, err = h.db.Exec(insertBookLendingQuery, request.UserID, bookID)
+	_, err = h.DB.Exec(insertBookLendingQuery, request.UserID, bookID)
 	if err != nil {
 		log.Println(err)
 		return
@@ -215,7 +215,7 @@ func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 
 	// Update Book stock query
 	updateStockQuery := "UPDATE books SET stock = $1 WHERE id = $2"
-	_, err = h.db.Exec(updateStockQuery, (bookStock - 1), bookID)
+	_, err = h.DB.Exec(updateStockQuery, (bookStock - 1), bookID)
 	if err != nil {
 		log.Println(err)
 		return
@@ -227,4 +227,9 @@ func (h *handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 		message: "Your order has been recorded!"
 	}
 	`), http.StatusOK)
+}
+
+// GetMultipleBooks a function to get multiple books in a single request
+func (h *Handler) GetMultipleBooks(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	// TODO
 }
