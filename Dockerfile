@@ -5,7 +5,7 @@ LABEL maintainer="Nino <martino.khuangga@tokopedia.com>"
 WORKDIR $GOPATH/src/github.com/martinock/devcamp-backend
 
 # Copy the necessary files from this project onto the docker machine
-COPY cmd/app .
+COPY . .
 
 # Echo the current directory (`pwd`) and lists its content (`ls`)
 RUN \

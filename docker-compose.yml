@@ -14,14 +14,14 @@ services:
     volumes: 
       - ./docker-volumes/var/lib/postgresql/data:/var/lib/postgresql/data
 
-  # devcamp-backend:
-  #   build: .
-  #   command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "app.go"]
-  #   volumes:
-  #     - .:/go/src/devcamp-backend
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - db
-  #   links:
-  #     - db
+  devcamp-backend:
+    build: .
+    command: ["./wait-for-it.sh", "postgres:5432", "--", "go", "run", "app.go"]
+    volumes:
+      - .:/go/src/devcamp-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    links:
+      - postgres

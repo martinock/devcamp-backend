@@ -7,3 +7,5 @@ vendor/
 
 # auto-generated stuff
 .vscode/
+
+docker-volumes

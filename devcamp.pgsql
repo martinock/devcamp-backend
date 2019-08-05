@@ -21,7 +21,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: books; Type: TABLE; Schema: public; Owner: nakama
+-- Name: books; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.books (
@@ -33,10 +33,10 @@ CREATE TABLE public.books (
 );
 
 
-ALTER TABLE public.books OWNER TO nakama;
+ALTER TABLE public.books OWNER TO postgres;
 
 --
--- Name: lend; Type: TABLE; Schema: public; Owner: nakama
+-- Name: lend; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.lend (
@@ -45,10 +45,10 @@ CREATE TABLE public.lend (
 );
 
 
-ALTER TABLE public.lend OWNER TO nakama;
+ALTER TABLE public.lend OWNER TO postgres;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: nakama
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.users (
@@ -57,10 +57,10 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO nakama;
+ALTER TABLE public.users OWNER TO postgres;
 
 --
--- Data for Name: books; Type: TABLE DATA; Schema: public; Owner: nakama
+-- Data for Name: books; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.books (id, title, author, isbn, stock) FROM stdin;
@@ -78,7 +78,7 @@ COPY public.books (id, title, author, isbn, stock) FROM stdin;
 
 
 --
--- Data for Name: lend; Type: TABLE DATA; Schema: public; Owner: nakama
+-- Data for Name: lend; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.lend (user_id, book_id) FROM stdin;
@@ -93,7 +93,7 @@ COPY public.lend (user_id, book_id) FROM stdin;
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: nakama
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.users (id, name) FROM stdin;
@@ -104,7 +104,7 @@ COPY public.users (id, name) FROM stdin;
 
 
 --
--- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: nakama
+-- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.books
@@ -112,7 +112,7 @@ ALTER TABLE ONLY public.books
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: nakama
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.users
@@ -120,7 +120,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: lend lend_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: nakama
+-- Name: lend lend_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.lend
@@ -128,7 +128,7 @@ ALTER TABLE ONLY public.lend
 
 
 --
--- Name: lend lend_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: nakama
+-- Name: lend lend_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.lend
