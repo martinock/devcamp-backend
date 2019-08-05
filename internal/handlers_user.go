@@ -133,8 +133,3 @@ func (h *Handler) DeleteUserByID(w http.ResponseWriter, r *http.Request, param h
 	}
 	`), http.StatusOK)
 }
-
-// GetMultipleUsers a function to get multiple users row in a single request
-func (h *Handler) GetMultipleUsers(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	// TODO
-}

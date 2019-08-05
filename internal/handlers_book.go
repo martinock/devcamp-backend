@@ -255,8 +255,3 @@ func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 	}
 	`), http.StatusOK)
 }
-
-// GetMultipleBooks a function to get multiple books in a single request
-func (h *Handler) GetMultipleBooks(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	// TODO
-}
