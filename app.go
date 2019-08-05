@@ -40,9 +40,6 @@ func initRouter(router *httprouter.Router, handler *internal.Handler) {
 	router.PUT("/user/:userID", handler.EditUserByID)
 	router.DELETE("/user/:userID", handler.DeleteUserByID)
 
-	// Batch user API
-	router.GET("/users", handler.GetMultipleUsers)
-
 	// Single book API
 	router.GET("/book/:bookID", handler.GetBookByID)
 	router.POST("/book", handler.InsertBook)
@@ -50,7 +47,6 @@ func initRouter(router *httprouter.Router, handler *internal.Handler) {
 	router.DELETE("/book/:bookID", handler.DeleteBookByID)
 
 	// Batch book API
-	router.GET("/books", handler.GetMultipleBooks)
 	router.POST("/books", handler.InsertMultipleBooks)
 
 	// Lending API

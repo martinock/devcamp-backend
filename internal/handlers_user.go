@@ -12,7 +12,7 @@ import (
 
 // GetUserByID a method to get user given userID params in URL
 func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	query := "SELECT * FROM users WHERE id = " + param.ByName("userID")
+	query := fmt.Sprintf("SELECT * FROM users WHERE id = %s", param.ByName("userID"))
 	rows, err := h.DB.Query(query)
 	if err != nil {
 		log.Println(err)
@@ -64,8 +64,8 @@ func (h *Handler) InsertUser(w http.ResponseWriter, r *http.Request, param httpr
 	}
 
 	// executing insert query
-	query := "INSERT INTO users (id, name) VALUES ($1, $2)"
-	_, err = h.DB.Exec(query, user.ID, user.Name)
+	query := fmt.Sprintf("INSERT INTO users (id, name) VALUES (%d, '%s')", user.ID, user.Name)
+	_, err = h.DB.Query(query)
 	if err != nil {
 		log.Println(err)
 		return
@@ -100,8 +100,8 @@ func (h *Handler) EditUserByID(w http.ResponseWriter, r *http.Request, param htt
 		return
 	}
 
-	query := "UPDATE users SET name = %s WHERE id = %s"
-	_, err = h.DB.Exec(fmt.Sprintf(query, user.Name, userID))
+	query := fmt.Sprintf("UPDATE users SET name = '%s' WHERE id = %s", user.Name, userID)
+	_, err = h.DB.Query(query)
 	if err != nil {
 		log.Println(err)
 		return
@@ -119,8 +119,8 @@ func (h *Handler) EditUserByID(w http.ResponseWriter, r *http.Request, param htt
 func (h *Handler) DeleteUserByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
 	userID := param.ByName("userID")
 
-	query := "DELETE FROM users WHERE id = %s"
-	_, err := h.DB.Exec(fmt.Sprintf(query, userID))
+	query := fmt.Sprintf("DELETE FROM users WHERE id = %s", userID)
+	_, err := h.DB.Exec(query)
 	if err != nil {
 		log.Println(err)
 		return
