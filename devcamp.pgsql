@@ -74,6 +74,7 @@ COPY public.books (id, title, author, isbn, stock) FROM stdin;
 8	"Annotated Notes on the ‘Duck and Goose’ chronicles"	"Prof Macaw"	"ISBN-TEST"	10
 9	"‘Duck and Goose’ Cheat Sheet for Students"	"Polly Parrot"	"ISBN-TEST"	10
 10	"‘Duck and Goose’: an allegory for modern times?"	"Bor Ing"	"ISBN-TEST"	10
+97	"‘Duck and Goose’: an allegory for modern times?"	\N	"ISBN-TEST"	10
 \.
 
 
@@ -100,6 +101,9 @@ COPY public.users (id, name) FROM stdin;
 1	User 1
 2	User 2
 3	User Blabla
+97	\N
+98	\N
+99	\N
 \.
 
 
