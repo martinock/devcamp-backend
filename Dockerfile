@@ -16,10 +16,10 @@ RUN \
     echo ""
 
 # Build process
-RUN go build
+RUN go get -v
 
 # Port to be used
 EXPOSE 3000
 
 # Entry point for this Dockerfile
-CMD ["./devcamp-backend"]
+CMD ["devcamp-backend"]
