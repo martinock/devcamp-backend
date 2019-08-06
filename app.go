@@ -21,7 +21,7 @@ func initFlags(args *internal.Args) {
 func initHandler(handler *internal.Handler) error {
 
 	// Initialize SQL DB
-	db, err := sql.Open("postgres", "postgres://postgres:postgres@localhost:5432/?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://postgres:postgres@postgres:5432/?sslmode=disable")
 	if err != nil {
 		return err
 	}

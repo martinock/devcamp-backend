@@ -5,7 +5,7 @@ LABEL maintainer="Nino <martino.khuangga@tokopedia.com>"
 WORKDIR $GOPATH/src/github.com/martinock/devcamp-backend
 
 # Copy the necessary files from this project onto the docker machine
-COPY cmd/app .
+COPY . .
 
 # Echo the current directory (`pwd`) and lists its content (`ls`)
 RUN \
@@ -16,10 +16,10 @@ RUN \
     echo ""
 
 # Build process
-RUN go build
+RUN go get -v
 
 # Port to be used
 EXPOSE 3000
 
 # Entry point for this Dockerfile
-CMD ["./devcamp-backend"]
+CMD ["devcamp-backend"]
