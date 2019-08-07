@@ -36,4 +36,5 @@ type Book struct {
 // LendRequest struct for receiving lend http request
 type LendRequest struct {
 	UserID int `json:"user_id"`
+	BookID int `json:"book_id"`
 }
