@@ -193,9 +193,6 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 
 // LendBook a function to record book lending in DB and update book stock in book tables
 func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	bookID := param.ByName("bookID")
-	bookStockQuery := fmt.Sprintf("SELECT stock FROM books WHERE id = %s", bookID)
-
 	// Read userID
 	body, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -214,24 +211,8 @@ func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 		return
 	}
 
-	// Get book stock from DB
-	rows, err := h.DB.Query(bookStockQuery)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	var bookStock int
-	for rows.Next() {
-		err := rows.Scan(&bookStock)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-	}
-
 	// Insert Book to Lend tables
-	insertBookLendingQuery := fmt.Sprintf("INSERT INTO lend (user_id, book_id) VALUES (%d, %s)", request.UserID, bookID)
+	insertBookLendingQuery := fmt.Sprintf("INSERT INTO lend (user_id, book_id) VALUES (%d, %d)", request.UserID, request.BookID)
 	_, err = h.DB.Query(insertBookLendingQuery)
 	if err != nil {
 		log.Println(err)
@@ -239,7 +220,7 @@ func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 	}
 
 	// Update Book stock query
-	updateStockQuery := fmt.Sprintf("UPDATE books SET stock = %d WHERE id = %s", (bookStock - 1), bookID)
+	updateStockQuery := fmt.Sprintf("UPDATE books SET stock = stock - 1 WHERE id = %d", request.BookID)
 	_, err = h.DB.Query(updateStockQuery)
 	if err != nil {
 		log.Println(err)

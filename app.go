@@ -50,7 +50,7 @@ func initRouter(router *httprouter.Router, handler *internal.Handler) {
 	router.POST("/books", handler.InsertMultipleBooks)
 
 	// Lending API
-	router.POST("/lend/:bookID", handler.LendBook)
+	router.POST("/lend", handler.LendBook)
 
 	// `httprouter` library uses `ServeHTTP` method for it's 404 pages
 	router.NotFound = handler
