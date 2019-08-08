@@ -34,10 +34,15 @@ func (h *Handler) CreateWorker(total int, wg *sync.WaitGroup) {
 
 // CreateJobs create jobs to send data to jobs channel
 func (h *Handler) CreateJobs(data []string) {
-	batchSize := 10
+	batchSize := 3
 
 	for start := 0; start < len(data); start += batchSize {
-		jobs <- data[start : start+2]
+		end := start + batchSize
+
+		if end > len(data) {
+			end = len(data) - 1
+		}
+		jobs <- data[start:end]
 	}
 	close(jobs)
 }
@@ -66,7 +71,7 @@ func (h *Handler) InsertToDB(rows []string) {
 		queries += query
 	}
 
-	_, err := h.DB.Query(queries)
+	_, err := h.DB.Exec(queries)
 	if err != nil {
 		log.Println(err)
 	}
