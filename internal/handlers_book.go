@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,38 +16,54 @@ import (
 
 // GetBookByID a function to get a single book given it's ID
 func (h *Handler) GetBookByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	query := fmt.Sprintf("SELECT id, title, author, isbn, stock FROM books WHERE id = %s", param.ByName("bookID"))
-	rows, err := h.DB.Query(query)
+	var books []Book
+	var output []byte
+	key := "Book_" + param.ByName("bookID")
+
+	data, err := h.MemCache.Get(key)
 	if err != nil {
-		log.Println(err)
-		return
+		log.Printf("Got Error , err : %+v", err)
 	}
 
-	var books []Book
-
-	for rows.Next() {
-		book := Book{}
-		err := rows.Scan(
-			&book.ID,
-			&book.Title,
-			&book.Author,
-			&book.ISBN,
-			&book.Stock,
-		)
+	if data != nil {
+		output, err = json.Marshal(data)
 		if err != nil {
 			log.Println(err)
-			continue
+			return
 		}
-		books = append(books, book)
+	} else {
+		query := fmt.Sprintf("SELECT id, title, author, isbn, stock FROM books WHERE id = %s", param.ByName("bookID"))
+		rows, err := h.DB.Query(query)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		for rows.Next() {
+			book := Book{}
+			err := rows.Scan(
+				&book.ID,
+				&book.Title,
+				&book.Author,
+				&book.ISBN,
+				&book.Stock,
+			)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			books = append(books, book)
+		}
+		output, err = json.Marshal(books)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		h.MemCache.Set(key, books)
 	}
 
-	bytes, err := json.Marshal(books)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	renderJSON(w, bytes, http.StatusOK)
+	renderJSON(w, output, http.StatusOK)
 }
 
 // InsertBook a function to insert book to DB
@@ -173,11 +190,63 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 		}
 		// Split rows to column
 		columns := strings.Split(row, ",")
-		query := fmt.Sprintf("INSERT INTO books (id, title, author, isbn, stock) VALUES (%s, '%s', '%s', '%s', %s)", columns[0], columns[1], columns[2], columns[3], columns[4])
-		_, err = h.DB.Query(query)
+		query := "INSERT INTO books (id, title, author, isbn, stock) VALUES ($1, $2, $3, $4, $5)"
+		_, err = h.DB.Query(query, columns[0], columns[1], columns[2], columns[3], columns[4])
 		if err != nil {
 			log.Println(err)
 			continue
+		}
+
+	}
+
+	buffer.Reset()
+
+	renderJSON(w, []byte(`
+	{
+		status: "success",
+		message: "Insert book success!"
+	}
+	`), http.StatusOK)
+}
+
+// InsertMultipleBooksWithBatchingProcess a function to insert multiple book data, given file of books data
+func (h *Handler) InsertMultipleBooksWithBatchingProcess(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
+	var buffer bytes.Buffer
+
+	file, header, err := r.FormFile("books")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer file.Close()
+
+	// get file name
+	name := strings.Split(header.Filename, ".")
+	if name[1] != "csv" {
+		log.Println("File format not supported")
+		return
+	}
+	log.Printf("Received a file with name = %s\n", name[0])
+
+	// copy file to buffer
+	io.Copy(&buffer, file)
+
+	contents := buffer.String()
+
+	// Split contents to rows
+	rows := strings.Split(contents, "\n")
+	totaltask := len(rows)
+	maxBatch := 2
+	for start := 0; start < totaltask; start += maxBatch {
+		end := start + maxBatch
+
+		if end > totaltask {
+			end = totaltask
+		}
+
+		err := h.insertBatchProcess(rows[start:end])
+		if err != nil {
+			log.Println("err batch : ", err)
 		}
 	}
 
@@ -189,6 +258,51 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 		message: "Insert book success!"
 	}
 	`), http.StatusOK)
+}
+
+func (h *Handler) insertBatchProcess(data []string) (err error) {
+	sqlStr := "INSERT INTO books(id, title, author, isbn, stock) VALUES "
+	vals := []interface{}{}
+	val := "(?, ?, ?, ?, ?)"
+
+	var values []string
+
+	for _, row := range data {
+		values = append(values, val)
+		columns := strings.Split(row, ",")
+		vals = append(vals, columns[0], columns[1], columns[2], columns[3], columns[4])
+		log.Println("data added : ", row)
+	}
+	//trim the last ,
+	sqlStr = sqlStr + strings.Join(values, ",")
+	log.Println(sqlStr)
+	log.Println(vals)
+	// prepare the statement
+	sqlStr = h.ReplaceSQL(sqlStr, "?")
+	stmt, err := h.DB.Prepare(sqlStr)
+	if err != nil {
+		log.Println("err prepare")
+		return
+	}
+
+	//format all vals at once
+	res, err := stmt.Exec(vals...)
+	if err != nil {
+		log.Println("err exec")
+		return
+	}
+
+	log.Println(res)
+
+	return
+}
+
+func (h *Handler) ReplaceSQL(old, searchPattern string) string {
+	tmpCount := strings.Count(old, searchPattern)
+	for m := 1; m <= tmpCount; m++ {
+		old = strings.Replace(old, searchPattern, "$"+strconv.Itoa(m), 1)
+	}
+	return old
 }
 
 // LendBook a function to record book lending in DB and update book stock in book tables

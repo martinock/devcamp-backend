@@ -2,6 +2,8 @@ package internal
 
 import (
 	"database/sql"
+
+	kcache "github.com/koding/cache"
 )
 
 // Args used for this application
@@ -15,7 +17,8 @@ type Args struct {
 type Handler struct {
 
 	// DB object that'll be used
-	DB *sql.DB
+	DB       *sql.DB
+	MemCache *kcache.MemoryTTL
 }
 
 // User struct for database query

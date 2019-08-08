@@ -6,11 +6,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 
-	"github.com/martinock/devcamp-backend/internal"
+	"github.com/tokopedia/devcamp-backend/internal"
+
+	kcache "github.com/koding/cache"
+)
+
+const (
+	//TTL for books
+	booksTTL = 5
 )
 
 func initFlags(args *internal.Args) {
@@ -21,11 +29,18 @@ func initFlags(args *internal.Args) {
 func initHandler(handler *internal.Handler) error {
 
 	// Initialize SQL DB
-	db, err := sql.Open("postgres", "postgres://postgres:postgres@postgres:5432/?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://postgres:postgres@127.0.0.1:5432/?sslmode=disable")
 	if err != nil {
 		return err
 	}
+
+	// create a cache with TTL
+	cache := kcache.NewMemoryWithTTL(booksTTL * time.Second)
+	// start garbage collection for expired keys
+	cache.StartGC(time.Millisecond * 10)
+
 	handler.DB = db
+	handler.MemCache = cache
 
 	return nil
 }
@@ -48,6 +63,9 @@ func initRouter(router *httprouter.Router, handler *internal.Handler) {
 
 	// Batch book API
 	router.POST("/books", handler.InsertMultipleBooks)
+
+	// Batch book API
+	router.POST("/books/batch", handler.InsertMultipleBooksWithBatchingProcess)
 
 	// Lending API
 	router.POST("/lend", handler.LendBook)
