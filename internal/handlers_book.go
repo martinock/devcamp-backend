@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,6 +22,7 @@ func (h *Handler) GetBookByID(w http.ResponseWriter, r *http.Request, param http
 		log.Println(err)
 		return
 	}
+	defer rows.Close()
 
 	var books []Book
 
@@ -165,21 +167,34 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 	contents := buffer.String()
 
 	// Split contents to rows
-	rows := strings.Split(contents, "\n")
-	for i, row := range rows {
-		// skip title
-		if i == 0 {
-			continue
-		}
+	rows := strings.Split(contents, "\n")[1:]
+
+	h.RunWorkerPool(rows)
+
+	_, err = h.DB.Query("DELETE FROM BOOKS WHERE ID > 10")
+	if err != nil {
+		log.Panic("Failed to delete", err)
+	}
+
+	start := time.Now()
+	for _, row := range rows[1:] {
 		// Split rows to column
 		columns := strings.Split(row, ",")
-		query := fmt.Sprintf("INSERT INTO books (id, title, author, isbn, stock) VALUES (%s, '%s', '%s', '%s', %s)", columns[0], columns[1], columns[2], columns[3], columns[4])
-		_, err = h.DB.Query(query)
+
+		// check for any wrong input
+		if len(columns) != 5 {
+			continue
+		}
+
+		query := fmt.Sprintf("INSERT INTO books (id, title, author, isbn, stock) VALUES (%s, '%s', '%s', '%s', %s) ON CONFLICT(id) DO NOTHING", columns[0], columns[1], columns[2], columns[3], columns[4])
+		_, err := h.DB.Exec(query)
 		if err != nil {
 			log.Println(err)
+			log.Panic(h.DB.Stats())
 			continue
 		}
 	}
+	log.Println("[Without worker] Finished with time", time.Since(start).Seconds(), "s")
 
 	buffer.Reset()
 
