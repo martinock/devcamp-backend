@@ -6,21 +6,30 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 // GetUserByID a method to get user given userID params in URL
 func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request, param httprouter.Params) {
-	query := fmt.Sprintf("SELECT * FROM users WHERE id = %s", param.ByName("userID"))
-	rows, err := h.DB.Query(query)
+	now := time.Now()
+
+	userID, err := strconv.ParseInt(param.ByName("userID"), 10, 64)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[internal][GetUserByID] invalid user_id :%+v\n", err)
 		return
 	}
 
-	var users []User
+	rows, err := h.DB.Query("SELECT id, COALESCE(name,'unidentified') FROM users WHERE id = $1", userID)
+	if err != nil {
+		log.Printf("[internal][GetUserByID] fail to query :%+v\n", err)
+		return
+	}
+	defer rows.Close()
 
+	var users []User
 	for rows.Next() {
 		user := User{}
 		err := rows.Scan(
@@ -28,7 +37,7 @@ func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request, param http
 			&user.Name,
 		)
 		if err != nil {
-			log.Println(err)
+			log.Printf("[internal][GetUserByID] fail to scan :%+v\n", err)
 			continue
 		}
 		users = append(users, user)
@@ -36,11 +45,17 @@ func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request, param http
 
 	bytes, err := json.Marshal(users)
 	if err != nil {
-		log.Println(err)
+		log.Printf("[internal][GetUserByID] fail to marshal data :%+v\n", err)
 		return
 	}
 
 	renderJSON(w, bytes, http.StatusOK)
+
+	processTime := time.Since(now).Seconds()
+	if processTime > 0.5 {
+		log.Printf("[internal][GetUserByID] process time: %f s\n", processTime)
+	}
+
 }
 
 // InsertUser a function to insert user data (id, name) to DB

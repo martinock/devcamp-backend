@@ -211,19 +211,24 @@ func (h *Handler) LendBook(w http.ResponseWriter, r *http.Request, param httprou
 		return
 	}
 
-	// Insert Book to Lend tables
-	insertBookLendingQuery := fmt.Sprintf("INSERT INTO lend (user_id, book_id) VALUES (%d, %d)", request.UserID, request.BookID)
-	_, err = h.DB.Query(insertBookLendingQuery)
+	// Update Book stock query
+	res, err := h.DB.Exec("UPDATE books SET stock = stock - 1 WHERE id = $1 AND stock-1>=0",
+		request.BookID)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	// Update Book stock query
-	updateStockQuery := fmt.Sprintf("UPDATE books SET stock = stock - 1 WHERE id = %d", request.BookID)
-	_, err = h.DB.Query(updateStockQuery)
-	if err != nil {
-		log.Println(err)
+	affected, _ := res.RowsAffected()
+	if affected > 0 {
+		// Insert Book to Lend tables
+		_, err = h.DB.Exec("INSERT INTO lend (user_id, book_id) VALUES ($1, $2)",
+			request.UserID, request.BookID)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+	} else {
+		//return error message
 		return
 	}
 
