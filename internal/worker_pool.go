@@ -15,7 +15,7 @@ func (h *Handler) RunWorkerPool(data []string) {
 	start := time.Now()
 
 	// create worker
-	go h.CreateWorker(1, &wg)
+	go h.CreateWorker(3, &wg)
 
 	// create jobs
 	h.CreateJobs(data)

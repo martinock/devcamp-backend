@@ -190,7 +190,6 @@ func (h *Handler) InsertMultipleBooks(w http.ResponseWriter, r *http.Request, pa
 		_, err := h.DB.Exec(query)
 		if err != nil {
 			log.Println(err)
-			log.Panic(h.DB.Stats())
 			continue
 		}
 	}
