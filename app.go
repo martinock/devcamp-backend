@@ -63,6 +63,7 @@ func main() {
 
 	handler := new(internal.Handler)
 	if err := initHandler(handler); err != nil {
+		log.Println("Failed to init handler", err)
 		panic(err)
 	}
 
